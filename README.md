@@ -76,8 +76,45 @@ $ git reset --soft b8e5fdd
 $ git commit -m 'undo commit'
 [master 63c3d40] undo commit
  1 file changed, 1 insertion(+), 1 deletion(-)
+
 $ git log --oneline
 63c3d40 (HEAD -> master) undo commit
 b8e5fdd awesome message
 ```
 Пабам, мы расклеили склеенный коммит
+## Как отменить hard reset?
+Все шло прекрасно, пока я не сделал `git reset --hard`... Возьмем пример отсюда [тыц](#как-отменить-git-commit---amend) и выполним команду `git reset b8e5fdd --hard` :
+
+```
+$ git log --oneline
+63c3d40 (HEAD -> master) undo commit
+b8e5fdd awesome message
+
+$ git reset b8e5fdd --hard
+HEAD is now at b8e5fdd awesome message
+
+$ git log --oneline
+b8e5fdd (HEAD -> master) awesome message
+```
+Таким образом, мы отменили последний коммит. И передумали... ШтошТеперьДелатьТо? А поступить можно так.  Тут нам тоже может помочь `git reflog` . Смотрим, что там есть:
+
+```
+$ git reflog
+b8e5fdd (HEAD -> master) HEAD@{0}: reset: moving to b8e5fdd
+63c3d40 HEAD@{1}: commit: undo commit
+b8e5fdd (HEAD -> master) HEAD@{2}: reset: moving to b8e5fdd
+8ee9546 HEAD@{3}: commit (amend): awesome message
+b8e5fdd (HEAD -> master) HEAD@{4}: commit (initial): awesome message
+```
+В нашем случае нужно вернуться на один шаг назад. Лучший кандидат для этого - коммит с хэшем `63c3d40` :
+
+```
+$ git reset --hard 63c3d40
+HEAD is now at 63c3d40 undo commit
+
+$ git log --oneline
+63c3d40 (HEAD -> master) undo commit
+b8e5fdd awesome message
+```
+
+Мама, я только что, отменил `git reset --hard` !
