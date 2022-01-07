@@ -32,5 +32,52 @@ $ git commit
 ### Способ №4. amend
 Допустим вы сделали один коммит, внесли небольшое изменение и хотите склеить его с предыдущим коммитом *не меняя его сообщение*, вместо того чтобы сделать новый. Используйте: ```$ git commit --ammend --no-edit```.
 ## Как поменять сообщение в последнем коммите?
-И вот на стал час коммита, вы набираете `$ git commit -m 'Wingarduim Leviosa`, и вы понимаете, что описание коммита получилось очень абракадабристым.
+И вот на стал час коммита, вы набираете `$ git commit -m 'Wingarduim Leviosa'`, и вы понимаете, что описание коммита получилось очень абракадабристым.
 Используйте: ```$ git commit --ammend```
+## Как отменить git commit --amend?
+Amend это круто, но вдруг нужно откатится назад и отменить amend? Просто сделать `reset` не получится, потому что коммит уже склеен с предыдущим. Тут на сцену выходит `git reflog`. Мощная команда для путешественников во времени. [Ссылка](http://git-scm.com/docs/git-reflog) на официальную документацию.
+Приведем небольшой пример. Инициализируем новый репозиторий и сделаем в нем один коммит:
+```
+$ git init
+Initialized empty Git repository in reflog/.git/
+$ echo 'awesome changes' > awesome_file.txt
+$ git add .
+$ git commit -m 'awesome message'
+[master (root-commit) b8e5fdd] awesome message
+ 1 file changed, 1 insertion(+)
+ create mode 100644 awesome_file.txt
+```
+Прекрасно. Теперь добавим еще один коммит и склеим его с предыдущим:
+
+```
+$ echo 'great changes' > awesome_file.txt
+$ git add .
+$ git commit --amend
+[master 8ee9546] awesome message
+ Date: Fri Jan 7 22:57:31 2022 +0300
+ 1 file changed, 1 insertion(+)
+ create mode 100644 awesome_file.txt
+ ```
+
+Текс, посмотрим, что там с историей коммитов, а заодно и глянем в `reflog`
+```
+$ git log --oneline
+8ee9546 awesome message
+
+$ git reflog
+8ee9546 HEAD@{0}: commit (amend): awesome message
+b8e5fdd HEAD@{1}: commit (initial): awesome message
+```
+
+Супер, с одной стороны оба коммита **склеились в один** коммит, с другой стороны мы имеем **две записи** в `reflog`. Теперь нам нужно просто скопировать хэш того коммита до которого мы хотим отменить изменения (в нашем случае хэш будет равен `b8e5fdd`), сделать reset и закоммитить изменения:
+
+```
+$ git reset --soft b8e5fdd
+$ git commit -m 'undo commit'
+[master 63c3d40] undo commit
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+$ git log --oneline
+63c3d40 (HEAD -> master) undo commit
+b8e5fdd awesome message
+```
+Пабам, мы расклеили склеенный коммит
